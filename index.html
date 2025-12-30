@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simple ToDo</title>
+
+  <style>
+    :root{
+      --bg:#070a12;
+      --card: rgba(17,24,39,.72);
+      --text:#e5e7eb;
+      --muted:#9ca3af;
+      --line: rgba(255,255,255,.10);
+
+      --a1:#60a5fa;
+      --a2:#a78bfa;
+      --a3:#f472b6;
+      --ok:#34d399;
+      --danger:#fb7185;
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;
+      color:var(--text);
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      padding:24px;
+      background:
+        radial-gradient(900px 520px at 15% -10%, rgba(96,165,250,.28), transparent 60%),
+        radial-gradient(800px 520px at 85% -5%, rgba(167,139,250,.22), transparent 62%),
+        radial-gradient(900px 520px at 55% 110%, rgba(244,114,182,.18), transparent 58%),
+        linear-gradient(180deg, #050712, var(--bg));
+    }
+
+    /* ガラスカード */
+    .app{
+      width:min(760px,100%);
+      background: var(--card);
+      border:1px solid var(--line);
+      border-radius:22px;
+      box-shadow: 0 18px 60px rgba(0,0,0,.45);
+      overflow:hidden;
+      backdrop-filter: blur(14px);
+      position:relative;
+      max-height: 85vh;
+      display:flex;
+      flex-direction:column;
+    }
+
+    /* うっすら光の筋（飽きない要素） */
+    .app::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: conic-gradient(from 180deg at 50% 50%,
+        rgba(96,165,250,.0),
+        rgba(96,165,250,.18),
+        rgba(167,139,250,.14),
+        rgba(244,114,182,.12),
+        rgba(96,165,250,.0));
+      filter: blur(18px);
+      opacity:.45;
+      pointer-events:none;
+    }
+    .app > * { position:relative; }
+
+    header{
+      padding:18px 18px 14px;
+      border-bottom:1px solid var(--line);
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:12px;
+    }
+    h1{
+      margin:0;
+      font-size:18px;
+      letter-spacing:.2px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    h1 .dot{
+      width:10px;height:10px;border-radius:999px;
+      background: linear-gradient(135deg, var(--a1), var(--a2), var(--a3));
+      box-shadow: 0 0 18px rgba(96,165,250,.35);
+    }
+    .meta{ color:var(--muted); font-size:12px; }
+
+    /* リスト領域はスクロール。下固定入力の分だけ余白を確保 */
+    #list{
+      overflow:auto;
+      padding-bottom: 18px;
+    }
+
+    /* 行 */
+    .row{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      padding:12px 18px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      animation: pop .22s ease-out;
+    }
+    @keyframes pop{
+      from{ transform: translateY(6px); opacity:0; }
+      to{ transform: translateY(0); opacity:1; }
+    }
+    .row:last-child{ border-bottom:none; }
+
+    .todo-text{
+      flex:1;
+      font-size:14px;
+      line-height:1.45;
+    }
+
+    /* 完了 */
+    .done .todo-text{
+      color:rgba(156,163,175,.9);
+      text-decoration: line-through;
+      text-decoration-thickness:2px;
+    }
+
+    /* チェックボックス */
+    .row input[type="checkbox"]{
+      width:18px;height:18px;
+      accent-color: var(--ok);
+      cursor:pointer;
+    }
+
+    /* 削除ボタン */
+    .icon-btn{
+      background: rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.08);
+      padding:8px 10px;
+      border-radius:12px;
+      color:var(--muted);
+      cursor:pointer;
+    }
+    .icon-btn:hover{
+      color:var(--text);
+      background: rgba(255,255,255,.06);
+    }
+    .danger:hover{
+      color:var(--danger);
+      border-color: rgba(251,113,133,.25);
+    }
+
+    /* 空表示 */
+    .empty{
+      padding:28px 18px;
+      color:rgba(156,163,175,.92);
+      text-align:center;
+      font-size:13px;
+    }
+    .kbd{
+      border:1px solid rgba(255,255,255,.14);
+      border-bottom-color: rgba(255,255,255,.22);
+      padding:2px 6px;
+      border-radius:7px;
+      background: rgba(255,255,255,.05);
+      color:var(--text);
+      font-size:11px;
+      margin-left:4px;
+    }
+
+    /* footer */
+    footer{
+      padding:12px 18px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      color:var(--muted);
+      font-size:12px;
+      border-top:1px solid var(--line);
+    }
+
+    /* 完了一括削除pill */
+    .pill{
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      color:var(--muted);
+      cursor:pointer;
+      user-select:none;
+    }
+    .pill:hover{
+      color:var(--text);
+      background: rgba(255,255,255,.06);
+    }
+
+    /* ✅ 入力欄：下固定（sticky） */
+    .composer{
+      position: sticky;
+      bottom: 0;
+      padding: 12px 14px 14px;
+      display:flex;
+      gap:10px;
+      border-top:1px solid rgba(255,255,255,.10);
+      background: rgba(17,24,39,.86);
+      backdrop-filter: blur(14px);
+    }
+
+    /* 入力 */
+    input[type="text"]{
+      flex:1;
+      padding:12px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.10);
+      outline:none;
+      background: rgba(0,0,0,.22);
+      color:var(--text);
+      font-size:14px;
+    }
+    input[type="text"]::placeholder{ color: rgba(156,163,175,.75); }
+    input[type="text"]:focus{
+      border-color: rgba(96,165,250,.35);
+      box-shadow: 0 0 0 4px rgba(96,165,250,.12);
+    }
+
+    /* 追加ボタン */
+    button#addBtn{
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.10);
+      color: var(--text);
+      font-weight: 700;
+      cursor:pointer;
+      background: linear-gradient(135deg, rgba(96,165,250,.55), rgba(167,139,250,.50), rgba(244,114,182,.45));
+      box-shadow: 0 10px 25px rgba(0,0,0,.25);
+    }
+    button#addBtn:hover{ filter: brightness(1.08); }
+    button#addBtn:active{ transform: translateY(1px); }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <header>
+      <h1><span class="dot"></span>Simple ToDo</h1>
+      <div class="meta"><span id="count">0</span> items</div>
+    </header>
+
+    <div id="list"></div>
+
+    <div id="empty" class="empty" hidden>
+      まだToDoがないよ。入力して <span class="kbd">Enter</span> で追加してみて。
+    </div>
+
+    <footer>
+      <div>自動保存：ON（このブラウザに保存）</div>
+      <div class="pill" id="clearDone">完了を一括削除</div>
+    </footer>
+
+    <!-- ✅ 下固定入力 -->
+    <div class="composer">
+      <input id="input" type="text" placeholder="やることを追加（Enter）" autocomplete="off" />
+      <button id="addBtn">追加</button>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "simple_todo_v1";
+
+    /** @type {{id:string,text:string,done:boolean,createdAt:number}[]} */
+    let todos = load();
+
+    const $input = document.getElementById("input");
+    const $addBtn = document.getElementById("addBtn");
+    const $list = document.getElementById("list");
+    const $count = document.getElementById("count");
+    const $empty = document.getElementById("empty");
+    const $clearDone = document.getElementById("clearDone");
+
+    function uid() {
+      return Math.random().toString(16).slice(2) + Date.now().toString(16);
+    }
+
+    function load() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function save() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+    }
+
+    function addTodo(text) {
+      const t = text.trim();
+      if (!t) return;
+      todos.unshift({ id: uid(), text: t, done: false, createdAt: Date.now() });
+      $input.value = ""; // ← 入れたら空にする
+      save();
+      render();
+    }
+
+    function toggleTodo(id) {
+      const t = todos.find(x => x.id === id);
+      if (!t) return;
+      t.done = !t.done;
+      save();
+      render();
+    }
+
+    function deleteTodo(id) {
+      todos = todos.filter(x => x.id !== id);
+      save();
+      render();
+    }
+
+    function clearDone() {
+      const before = todos.length;
+      todos = todos.filter(x => !x.done);
+      if (todos.length !== before) {
+        save();
+        render();
+      }
+    }
+
+    function render() {
+      $list.innerHTML = "";
+      $count.textContent = String(todos.length);
+      $empty.hidden = todos.length !== 0;
+
+      for (const t of todos) {
+        const row = document.createElement("div");
+        row.className = "row" + (t.done ? " done" : "");
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = t.done;
+        checkbox.addEventListener("change", () => toggleTodo(t.id));
+
+        const text = document.createElement("div");
+        text.className = "todo-text";
+        text.textContent = t.text;
+
+        const del = document.createElement("button");
+        del.className = "icon-btn danger";
+        del.textContent = "削除";
+        del.addEventListener("click", () => deleteTodo(t.id));
+
+        row.appendChild(checkbox);
+        row.appendChild(text);
+        row.appendChild(del);
+
+        $list.appendChild(row);
+      }
+    }
+
+    $addBtn.addEventListener("click", () => addTodo($input.value));
+    $input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") addTodo($input.value);
+    });
+
+    $clearDone.addEventListener("click", clearDone);
+
+    render();
+  </script>
+</body>
+</html>
