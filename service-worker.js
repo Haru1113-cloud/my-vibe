@@ -1,6 +1,6 @@
 
 
-const CACHE_NAME = "my-vibe-v1";
+const CACHE_NAME = "my-vibe-v2";
 const ASSETS = [
   "./",
   "./index.html",
