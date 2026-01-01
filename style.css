@@ -231,3 +231,53 @@ button#addBtn:hover{
 button#addBtn:active{
   transform: translateY(1px);
 }
+
+.composer{
+  flex-direction: column;
+  gap: 10px;
+}
+
+.composer-main{
+  display:flex;
+  gap:10px;
+}
+
+.tag-panel{
+  display:flex;
+  flex-direction: column;
+  gap:10px;
+}
+
+.tag-chips{
+  display:flex;
+  flex-wrap: wrap;
+  gap:8px;
+}
+
+.tag-chip{
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.04);
+  color: var(--muted);
+  cursor:pointer;
+  user-select:none;
+  font-size:12px;
+}
+
+.tag-chip.active{
+  color: var(--text);
+  border-color: rgba(96,165,250,.35);
+  background: rgba(96,165,250,.12);
+  box-shadow: 0 0 0 3px rgba(96,165,250,.10);
+}
+
+.tag-create{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+
+#newTagInput{
+  flex:1;
+}

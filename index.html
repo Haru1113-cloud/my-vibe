@@ -263,10 +263,23 @@
 
     <!-- ✅ 下固定入力 -->
     <div class="composer">
-      <input id="input" type="text" placeholder="やることを追加（Enter）" autocomplete="off" />
-      <button id="addBtn">追加</button>
+  <div class="composer-main">
+    <input id="input" type="text" placeholder="やることを追加（Enter）" autocomplete="off" />
+    <button id="addBtn">追加</button>
+  </div>
+
+  <!-- タグ選択（既存タグがチップで出る） -->
+  <div class="tag-panel">
+    <div id="tagChips" class="tag-chips"></div>
+
+    <!-- 新規タグ作成 -->
+    <div class="tag-create">
+      <input id="newTagInput" type="text" placeholder="新しいタグを作成（Enter）" autocomplete="off" />
+      <button id="createTagBtn" class="pill">タグ作成</button>
     </div>
   </div>
+</div>
+
 
   <script>
     const STORAGE_KEY = "simple_todo_v1";
